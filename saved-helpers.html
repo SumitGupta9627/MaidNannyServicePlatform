@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Helpers - Maid & Nanny Services</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body data-page="saved-helpers">
+    <section class="container page-section">
+        <div class="page-header">
+            <h1>Saved Helpers</h1>
+            <p>Your favorite service providers</p>
+        </div>
+
+        <div id="saved-container" class="grid grid-3">
+            <!-- Saved helpers will load here -->
+        </div>
+
+        <div id="no-saved" class="no-results" style="display: none;">
+            <p>You haven't saved any helpers yet.</p>
+            <a href="helpers.html" class="btn btn-primary" style="margin-top: 20px;">Browse Helpers</a>
+        </div>
+    </section>
+
+    <script>
+        function loadSavedHelpers() {
+            if (!requireLogin()) return;
+
+            const user = getCurrentUser();
+            if (normalizeRole(user.role) !== 'household') {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            const household = readStore('households', []).find(h => h.userId === user.id);
+            const savedIds = getSavedHelpers(household?.id || user.id);
+
+            const container = document.getElementById('saved-container');
+            const noSaved = document.getElementById('no-saved');
+
+            if (savedIds.length === 0) {
+                container.innerHTML = '';
+                noSaved.style.display = 'block';
+                return;
+            }
+
+            noSaved.style.display = 'none';
+
+            const allHelpers = getAllHelpers();
+            const savedHelpers = savedIds.map(id => allHelpers.find(h => h.id === id)).filter(Boolean);
+
+            container.innerHTML = savedHelpers.map(helper => `
+                <div class="helper-card">
+                    <div class="helper-avatar">${helper.name.split(' ').map(n => n[0]).join('')}</div>
+                    <div class="helper-info">
+                        <div class="helper-name">${helper.name}</div>
+                        <div class="helper-service">${helper.serviceType}</div>
+                        <div class="helper-meta">
+                            <div>📍 ${helper.location} | ${helper.experience}</div>
+                            <div>₹${helper.hourlyRate}/hr</div>
+                        </div>
+                        <div class="helper-rating">⭐ ${helper.rating.toFixed(1)} (${helper.reviews})</div>
+                        <div class="helper-actions">
+                            <a href="helper-details.html?id=${helper.id}" class="btn btn-primary">View</a>
+                            <button class="btn btn-danger" onclick="removeSaved('${helper.id}')">Remove</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function removeSaved(helperId) {
+            const user = getCurrentUser();
+            const household = readStore('households', []).find(h => h.userId === user.id);
+            unsaveHelper(household?.id || user.id, helperId);
+            showMessage('Removed from saved helpers', 'info');
+            loadSavedHelpers();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadSavedHelpers);
+    </script>
+
+    <footer>
+        <p>&copy; 2024 Maid & Nanny Service Management Platform</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Maid & Nanny Services</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body data-page="admin">
+    <section class="container page-section">
+        <div class="page-header">
+            <h1>Admin Dashboard</h1>
+            <p>Platform management and analytics</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="stat-helpers">0</div>
+                <div class="stat-label">Total Helpers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat-approved">0</div>
+                <div class="stat-label">Approved Helpers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat-pending">0</div>
+                <div class="stat-label">Pending Verification</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat-households">0</div>
+                <div class="stat-label">Total Households</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat-bookings">0</div>
+                <div class="stat-label">Total Bookings</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="stat-complaints">0</div>
+                <div class="stat-label">Open Complaints</div>
+            </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-top: 40px;">
+            <div class="card">
+                <div class="card-header">📊 Quick Stats</div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <td><strong>Active Bookings</strong></td>
+                            <td style="text-align: right;" id="active-bookings">0</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Completed Bookings</strong></td>
+                            <td style="text-align: right;" id="completed-bookings">0</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Resolved Complaints</strong></td>
+                            <td style="text-align: right;" id="resolved-complaints">0</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">⚡ Management Actions</div>
+                <div class="card-body">
+                    <a href="admin-verifications.html" class="btn btn-primary btn-block" style="margin-bottom: 10px;">
+                        Verify Helpers (Pending)
+                    </a>
+                    <a href="admin-bookings.html" class="btn btn-secondary btn-block" style="margin-bottom: 10px;">
+                        View All Bookings
+                    </a>
+                    <a href="admin-complaints.html" class="btn btn-warning btn-block" style="margin-bottom: 10px;">
+                        Manage Complaints
+                    </a>
+                    <a href="admin-reports.html" class="btn btn-outline btn-block">
+                        Generate Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 30px;">
+            <div class="card-header">📋 Recent Bookings</div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Helper</th>
+                            <th>Household</th>
+                            <th>Service</th>
+                            <th>Plan</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-bookings">
+                        <tr><td colspan="6" style="text-align: center; color: var(--text-light);">No bookings yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function loadAdminDashboard() {
+            if (!requireLogin()) return;
+
+            const user = getCurrentUser();
+            if (normalizeRole(user.role) !== 'admin') {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            const stats = getStatistics();
+            
+            document.getElementById('stat-helpers').textContent = stats.totalHelpers;
+            document.getElementById('stat-approved').textContent = stats.approvedHelpers;
+            document.getElementById('stat-pending').textContent = stats.pendingVerifications;
+            document.getElementById('stat-households').textContent = stats.totalHouseholds;
+            document.getElementById('stat-bookings').textContent = stats.totalBookings;
+            document.getElementById('stat-complaints').textContent = stats.openComplaints;
+
+            document.getElementById('active-bookings').textContent = stats.activeBookings;
+            document.getElementById('completed-bookings').textContent = stats.completedBookings;
+            document.getElementById('resolved-complaints').textContent = stats.resolvedComplaints;
+
+            // Recent bookings
+            const bookings = getBookings().slice(-10);
+            const tbody = document.getElementById('recent-bookings');
+            
+            if (bookings.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-light);">No bookings yet</td></tr>';
+            } else {
+                tbody.innerHTML = bookings.map(b => `
+                    <tr>
+                        <td>${b.helperName}</td>
+                        <td>Household ${b.householdId.substring(0, 8)}</td>
+                        <td>${b.serviceType}</td>
+                        <td>${b.planType}</td>
+                        <td><span class="badge badge-${b.status === 'Active' ? 'success' : b.status === 'Pending' ? 'warning' : 'info'}">${b.status}</span></td>
+                        <td>${new Date(b.createdAt).toLocaleDateString()}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAdminDashboard);
+    </script>
+
+    <footer>
+        <p>&copy; 2024 Maid & Nanny Service Management Platform</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Test - Maid & Nanny Services</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="config.js"></script>
+    <script src="js/data.js"></script>
+</head>
+<body>
+    <section class="container page-section">
+        <div class="card" style="max-width: 800px; margin: 0 auto;">
+            <div class="card-header">Platform Functionality Test</div>
+            
+            <div class="card-body">
+                <h3 style="color: var(--primary-color); margin-bottom: 15px;">Test Results</h3>
+                
+                <div id="test-results">
+                    <p>Running tests...</p>
+                </div>
+
+                <button class="btn btn-primary" onclick="runTests()" style="margin-top: 20px;">Run Tests</button>
+                <a href="index.html" class="btn btn-outline" style="margin-top: 20px; margin-left: 10px;">Back to Home</a>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function runTests() {
+            let results = [];
+
+            // Test 1: Data layer initialization
+            try {
+                const helpers = getAllHelpers();
+                results.push({
+                    name: 'Helper data loaded',
+                    passed: helpers.length > 0,
+                    details: `${helpers.length} helpers available`
+                });
+            } catch (e) {
+                results.push({ name: 'Helper data loaded', passed: false, details: e.message });
+            }
+
+            // Test 2: Service categories
+            try {
+                results.push({
+                    name: 'Service categories defined',
+                    passed: SERVICE_TYPES.length > 0,
+                    details: `${SERVICE_TYPES.length} service types available`
+                });
+            } catch (e) {
+                results.push({ name: 'Service categories defined', passed: false, details: e.message });
+            }
+
+            // Test 3: Cities data
+            try {
+                results.push({
+                    name: 'Cities database',
+                    passed: SERVICE_CITIES.length > 0,
+                    details: `${SERVICE_CITIES.length} cities available`
+                });
+            } catch (e) {
+                results.push({ name: 'Cities database', passed: false, details: e.message });
+            }
+
+            // Test 4: Helper profile verification status
+            try {
+                const helpers = getAllHelpers();
+                const approvedCount = helpers.filter(h => h.verificationStatus === 'Approved').length;
+                results.push({
+                    name: 'Helper verification working',
+                    passed: approvedCount > 0,
+                    details: `${approvedCount} approved helpers, ${helpers.filter(h => h.verificationStatus === 'Pending').length} pending`
+                });
+            } catch (e) {
+                results.push({ name: 'Helper verification working', passed: false, details: e.message });
+            }
+
+            // Test 5: Service plans
+            try {
+                const helpers = getAllHelpers();
+                const firstHelper = helpers[0];
+                const hasPlans = firstHelper.hourlyRate && firstHelper.monthlyRate && firstHelper.yearlyRate;
+                results.push({
+                    name: 'Service plans configured',
+                    passed: hasPlans,
+                    details: firstHelper.name + ': ₹' + firstHelper.hourlyRate + '/hr, ₹' + firstHelper.monthlyRate + '/mo, ₹' + firstHelper.yearlyRate + '/yr'
+                });
+            } catch (e) {
+                results.push({ name: 'Service plans configured', passed: false, details: e.message });
+            }
+
+            // Test 6: Rating system
+            try {
+                const helpers = getAllHelpers();
+                const firstHelper = helpers[0];
+                const hasRating = firstHelper.rating !== undefined;
+                results.push({
+                    name: 'Rating system implemented',
+                    passed: hasRating,
+                    details: firstHelper.name + ': ' + firstHelper.rating.toFixed(1) + ' stars (' + firstHelper.reviews + ' reviews)'
+                });
+            } catch (e) {
+                results.push({ name: 'Rating system implemented', passed: false, details: e.message });
+            }
+
+            // Test 7: localStorage functions
+            try {
+                writeStore('test-key', { test: 'value' });
+                const value = readStore('test-key');
+                const success = value.test === 'value';
+                localStorage.removeItem('test-key');
+                results.push({
+                    name: 'localStorage persistence',
+                    passed: success,
+                    details: 'Read/write operations working'
+                });
+            } catch (e) {
+                results.push({ name: 'localStorage persistence', passed: false, details: e.message });
+            }
+
+            // Test 8: Role normalization
+            try {
+                const normalizedRole = normalizeRole('customer');
+                results.push({
+                    name: 'Role normalization',
+                    passed: normalizedRole === 'household',
+                    details: 'customer -> ' + normalizedRole + ', worker -> ' + normalizeRole('worker')
+                });
+            } catch (e) {
+                results.push({ name: 'Role normalization', passed: false, details: e.message });
+            }
+
+            // Test 9: Unique ID generation
+            try {
+                const id1 = createId('test');
+                const id2 = createId('test');
+                results.push({
+                    name: 'Unique ID generation',
+                    passed: id1 !== id2 && id1.startsWith('test-'),
+                    details: 'Generated: ' + id1
+                });
+            } catch (e) {
+                results.push({ name: 'Unique ID generation', passed: false, details: e.message });
+            }
+
+            // Test 10: Helper skills
+            try {
+                const helpers = getAllHelpers();
+                const helperWithSkills = helpers.find(h => h.skills && h.skills.length > 0);
+                results.push({
+                    name: 'Helper skills data',
+                    passed: !!helperWithSkills,
+                    details: helperWithSkills ? helperWithSkills.name + ': ' + helperWithSkills.skills.join(', ') : 'No skills found'
+                });
+            } catch (e) {
+                results.push({ name: 'Helper skills data', passed: false, details: e.message });
+            }
+
+            // Display results
+            displayResults(results);
+        }
+
+        function displayResults(results) {
+            const container = document.getElementById('test-results');
+            const passedCount = results.filter(r => r.passed).length;
+            const totalCount = results.length;
+
+            let html = `
+                <div style="margin-bottom: 20px; padding: 15px; background: ${passedCount === totalCount ? '#d4edda' : '#fff3cd'}; border-radius: 8px;">
+                    <strong style="font-size: 16px;">Test Summary: ${passedCount}/${totalCount} passed</strong>
+                </div>
+            `;
+
+            results.forEach(result => {
+                const icon = result.passed ? '✅' : '❌';
+                const bg = result.passed ? '#f1f1f1' : '#ffe0e0';
+                html += `
+                    <div style="padding: 12px; margin-bottom: 10px; background: ${bg}; border-left: 4px solid ${result.passed ? '#4CAF50' : '#f44336'}; border-radius: 4px;">
+                        <strong>${icon} ${result.name}</strong><br>
+                        <small style="color: #666;">${result.details}</small>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Run tests on page load
+        window.addEventListener('load', runTests);
+    </script>
+
+    <footer>
+        <p>&copy; 2024 Maid & Nanny Service Management Platform</p>
+    </footer>
+</body>
+</html>

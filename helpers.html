@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Helpers - Maid & Nanny Services</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body data-page="helpers">
+    <section class="container page-section">
+        <div class="page-header">
+            <h1>Find Your Trusted Helper</h1>
+            <p>Browse and filter verified service providers</p>
+        </div>
+
+        <!-- Search & Filter Section -->
+        <div class="search-filter-section">
+            <div class="search-filter-grid">
+                <div class="form-group">
+                    <label>Search by Name</label>
+                    <input type="text" id="search-input" placeholder="Helper name...">
+                </div>
+
+                <div class="form-group">
+                    <label>Service Type</label>
+                    <select id="service-filter">
+                        <option value="">All Services</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Location</label>
+                    <select id="location-filter">
+                        <option value="">All Locations</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Experience</label>
+                    <select id="experience-filter">
+                        <option value="">All Levels</option>
+                        <option value="Fresher">Fresher</option>
+                        <option value="1-2 Years">1-2 Years</option>
+                        <option value="2-5 Years">2-5 Years</option>
+                        <option value="5+ Years">5+ Years</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Verification Status</label>
+                    <select id="verification-filter">
+                        <option value="">All</option>
+                        <option value="Approved">Verified Only</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-secondary btn-block" onclick="resetFilters()">Reset Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Helpers Grid -->
+        <div id="helpers-container" class="grid grid-3">
+            <!-- Helpers will be loaded here -->
+        </div>
+
+        <div id="no-results" class="no-results" style="display: none;">
+            <p>No helpers found matching your criteria.</p>
+        </div>
+    </section>
+
+    <script>
+        function populateFilters() {
+            const serviceSelect = document.getElementById('service-filter');
+            const locationSelect = document.getElementById('location-filter');
+
+            SERVICE_TYPES.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                serviceSelect.appendChild(option);
+            });
+
+            SERVICE_CITIES.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                locationSelect.appendChild(option);
+            });
+        }
+
+        function getHelperAvatar(name) {
+            const initials = name.split(' ').map(n => n[0]).join('');
+            return initials.toUpperCase();
+        }
+
+        function renderHelpers(helpers) {
+            const container = document.getElementById('helpers-container');
+            const noResults = document.getElementById('no-results');
+
+            container.innerHTML = '';
+
+            if (helpers.length === 0) {
+                noResults.style.display = 'block';
+                return;
+            }
+
+            noResults.style.display = 'none';
+
+            helpers.forEach(helper => {
+                const isSaved = isLoggedIn() ? isHelperSaved(getCurrentUser().id, helper.id) : false;
+                const verified = helper.verificationStatus === 'Approved';
+
+                const card = document.createElement('div');
+                card.className = 'helper-card';
+                card.innerHTML = `
+                    <div class="helper-avatar">${getHelperAvatar(helper.name)}</div>
+                    <div class="helper-info">
+                        <div class="helper-name">${helper.name}</div>
+                        <div class="helper-service">${helper.serviceType}</div>
+                        <div class="helper-meta">
+                            <div>📍 ${helper.location} | ${helper.experience}</div>
+                            <div>${helper.availability} | ₹${helper.hourlyRate}/hr</div>
+                        </div>
+                        ${verified ? '<div class="badge badge-success">✓ Verified</div>' : '<div class="badge badge-warning">Pending</div>'}
+                        <div class="helper-rating">
+                            ⭐ ${helper.rating.toFixed(1)} (${helper.reviews} reviews)
+                        </div>
+                        <div class="helper-actions">
+                            <a href="helper-details.html?id=${helper.id}" class="btn btn-primary">View Profile</a>
+                            <button class="btn btn-outline" onclick="toggleSaveHelper('${helper.id}', this)" ${!isLoggedIn() ? 'disabled' : ''}>
+                                ${isSaved ? '❤️' : '🤍'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function toggleSaveHelper(helperId, btn) {
+            if (!isLoggedIn()) {
+                window.location.href = 'login.html?next=' + encodeURIComponent(window.location.href);
+                return;
+            }
+
+            const user = getCurrentUser();
+            if (isHelperSaved(user.id, helperId)) {
+                unsaveHelper(user.id, helperId);
+                btn.textContent = '🤍';
+            } else {
+                saveHelper(user.id, helperId);
+                btn.textContent = '❤️';
+            }
+        }
+
+        function filterHelpers() {
+            const searchText = document.getElementById('search-input').value.toLowerCase();
+            const serviceFilter = document.getElementById('service-filter').value;
+            const locationFilter = document.getElementById('location-filter').value;
+            const experienceFilter = document.getElementById('experience-filter').value;
+            const verificationFilter = document.getElementById('verification-filter').value;
+
+            let helpers = getAllHelpers();
+
+            if (searchText) {
+                helpers = helpers.filter(h =>
+                    h.name.toLowerCase().includes(searchText) ||
+                    h.serviceType.toLowerCase().includes(searchText) ||
+                    (h.skills || []).some(s => s.toLowerCase().includes(searchText))
+                );
+            }
+
+            if (serviceFilter) {
+                helpers = helpers.filter(h => h.serviceType === serviceFilter);
+            }
+
+            if (locationFilter) {
+                helpers = helpers.filter(h => h.location === locationFilter);
+            }
+
+            if (experienceFilter) {
+                helpers = helpers.filter(h => h.experience === experienceFilter);
+            }
+
+            if (verificationFilter === 'Approved') {
+                helpers = helpers.filter(h => h.verificationStatus === 'Approved');
+            }
+
+            renderHelpers(helpers);
+        }
+
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('service-filter').value = '';
+            document.getElementById('location-filter').value = '';
+            document.getElementById('experience-filter').value = '';
+            document.getElementById('verification-filter').value = '';
+            filterHelpers();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            populateFilters();
+
+            // Check for service filter from URL
+            const params = new URLSearchParams(window.location.search);
+            const serviceParam = params.get('service');
+            if (serviceParam) {
+                document.getElementById('service-filter').value = serviceParam;
+            }
+
+            // Add event listeners
+            document.getElementById('search-input').addEventListener('input', filterHelpers);
+            document.getElementById('service-filter').addEventListener('change', filterHelpers);
+            document.getElementById('location-filter').addEventListener('change', filterHelpers);
+            document.getElementById('experience-filter').addEventListener('change', filterHelpers);
+            document.getElementById('verification-filter').addEventListener('change', filterHelpers);
+
+            // Initial render
+            filterHelpers();
+        });
+    </script>
+
+    <footer>
+        <p>&copy; 2024 Maid & Nanny Service Management Platform</p>
+    </footer>
+</body>
+</html>

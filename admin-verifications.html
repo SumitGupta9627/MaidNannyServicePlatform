@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Helpers - Maid & Nanny Services</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body data-page="admin-verifications">
+    <section class="container page-section">
+        <div class="page-header">
+            <h1>Helper Verification</h1>
+            <p>Review and approve helper profiles</p>
+        </div>
+
+        <div id="verifications-container">
+            <!-- Pending verifications will load here -->
+        </div>
+
+        <div id="no-verifications" class="no-results" style="display: none;">
+            <p>No pending verifications.</p>
+        </div>
+    </section>
+
+    <script>
+        function loadVerifications() {
+            if (!requireLogin()) return;
+
+            const user = getCurrentUser();
+            if (normalizeRole(user.role) !== 'admin') {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            const pending = getPendingVerifications();
+            const container = document.getElementById('verifications-container');
+            const noVerifications = document.getElementById('no-verifications');
+
+            if (pending.length === 0) {
+                container.innerHTML = '';
+                noVerifications.style.display = 'block';
+                return;
+            }
+
+            noVerifications.style.display = 'none';
+
+            container.innerHTML = pending.map(helper => `
+                <div class="card" style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; gap: 30px; flex-wrap: wrap;">
+                        <div style="flex: 2;">
+                            <h3>${helper.name}</h3>
+                            <p><strong>${helper.serviceType}</strong> | ${helper.experience} experience</p>
+                            <p>📍 ${helper.location} | 📞 ${helper.phone}</p>
+                            <p style="margin-top: 10px;">${helper.description}</p>
+
+                            <div style="margin-top: 15px;">
+                                <strong>Skills:</strong> ${(helper.skills || []).join(', ')}<br>
+                                <strong>Languages:</strong> ${(helper.languages || []).join(', ')}<br>
+                                <strong>Availability:</strong> ${helper.availability}<br>
+                                <strong>Profile Completion:</strong> ${helper.profileCompletion}%
+                            </div>
+
+                            <div style="margin-top: 15px; padding: 10px; background: var(--bg-light); border-radius: 4px;">
+                                <strong>Pricing:</strong><br>
+                                Hourly: ₹${helper.hourlyRate} | Monthly: ₹${helper.monthlyRate} | Yearly: ₹${helper.yearlyRate}
+                            </div>
+                        </div>
+
+                        <div style="flex: 1; text-align: center;">
+                            <div style="margin-bottom: 20px;">
+                                <strong>Verification Status:</strong><br>
+                                <span class="badge badge-warning" style="margin-top: 10px; display: inline-block;">
+                                    ${helper.verificationStatus}
+                                </span>
+                            </div>
+
+                            <div style="background: var(--bg-light); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <strong>Documents:</strong><br>
+                                ${helper.documents?.aadhar ? '✓ Aadhar' : '✗ Aadhar'}<br>
+                                ${helper.documents?.verification ? '✓ Verification' : '✗ Verification'}<br>
+                                ${helper.documents?.background ? '✓ Background Check' : '✗ Background Check'}
+                            </div>
+
+                            <button class="btn btn-success btn-block" onclick="approveHelper('${helper.id}')" style="margin-bottom: 10px;">
+                                ✓ Approve
+                            </button>
+                            <button class="btn btn-danger btn-block" onclick="rejectHelperClick('${helper.id}')">
+                                ✗ Reject
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function approveHelper(helperId) {
+            if (confirm('Approve this helper?')) {
+                const helper = approveHelper(helperId);
+                if (helper) {
+                    showMessage('Helper approved successfully!', 'success');
+                    loadVerifications();
+                }
+            }
+        }
+
+        function rejectHelperClick(helperId) {
+            const reason = prompt('Reason for rejection:');
+            if (reason !== null) {
+                const helper = rejectHelper(helperId, reason);
+                if (helper) {
+                    showMessage('Helper rejected', 'info');
+                    loadVerifications();
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadVerifications);
+    </script>
+
+    <footer>
+        <p>&copy; 2024 Maid & Nanny Service Management Platform</p>
+    </footer>
+</body>
+</html>

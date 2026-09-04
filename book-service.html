@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Service - Maid & Nanny Services</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body>
+    <section class="container page-section">
+        <div style="max-width: 500px; margin: 0 auto;">
+            <div class="card">
+                <div class="card-header">Confirm Your Booking</div>
+                
+                <div class="card-body">
+                    <div id="booking-summary" style="background: var(--bg-light); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <!-- Booking summary will appear here -->
+                    </div>
+
+                    <form id="booking-form">
+                        <div class="form-group">
+                            <label for="booking-start-date">Start Date *</label>
+                            <input type="date" id="booking-start-date" name="startDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="booking-city">City *</label>
+                            <select id="booking-city" name="city" required>
+                                <option value="">-- Select --</option>
+                                <option value="Delhi">Delhi</option>
+                                <option value="Noida">Noida</option>
+                                <option value="Gurgaon">Gurgaon</option>
+                                <option value="Agra">Agra</option>
+                                <option value="Lucknow">Lucknow</option>
+                                <option value="Ghaziabad">Ghaziabad</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="booking-address">Address *</label>
+                            <textarea id="booking-address" name="address" placeholder="Enter your complete address" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="booking-notes">Additional Notes</label>
+                            <textarea id="booking-notes" name="notes" placeholder="Any special instructions or requirements"></textarea>
+                        </div>
+
+                        <div style="background: var(--bg-light); padding: 15px; border-radius: 8px; margin: 20px 0;">
+                            <strong>Total Cost:</strong> <span id="total-cost" style="font-size: 20px; font-weight: bold; color: var(--primary-color);">₹0</span>
+                            <p style="font-size: 12px; color: var(--text-light); margin-top: 10px;" id="cost-note"></p>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">Confirm Booking</button>
+                        <a href="helpers.html" class="btn btn-outline btn-block" style="margin-top: 10px;">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        let bookingData = null;
+
+        function loadBookingForm() {
+            if (!requireLogin()) return;
+
+            const user = getCurrentUser();
+            if (normalizeRole(user.role) !== 'household') {
+                showMessage('Only household members can book services', 'error');
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            const data = sessionStorage.getItem('bookingData');
+            if (!data) {
+                window.location.href = 'helpers.html';
+                return;
+            }
+
+            bookingData = JSON.parse(data);
+
+            // Display booking summary
+            const summary = document.getElementById('booking-summary');
+            summary.innerHTML = `
+                <strong>${bookingData.helperName}</strong><br>
+                Service: ${bookingData.serviceType}<br>
+                Plan: ${bookingData.planType}<br>
+                Rate: ₹${bookingData.rate}
+            `;
+
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('booking-start-date').min = today;
+
+            updateTotalCost();
+        }
+
+        function updateTotalCost() {
+            const planType = bookingData?.planType || '';
+            let costNote = '';
+
+            if (planType === 'Hourly') {
+                costNote = '(First hour of service)';
+            } else if (planType === 'Monthly') {
+                costNote = '(30 days)';
+            } else if (planType === 'Yearly') {
+                costNote = '(365 days)';
+            }
+
+            document.getElementById('total-cost').textContent = `₹${bookingData?.rate || 0}`;
+            document.getElementById('cost-note').textContent = costNote;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBookingForm();
+
+            document.getElementById('booking-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const startDate = document.getElementById('booking-start-date').value;
+                const city = document.getElementById('booking-city').value;
+                const address = document.getElementById('booking-address').value;
+
+                if (!startDate || !city || !address) {
+                    showMessage('Please fill all required fields', 'error');
+                    return;
+                }
+
+                const user = getCurrentUser();
+                const household = readStore('households', []).find(h => h.userId === user.id);
+
+                const booking = createBooking({
+                    householdId: household?.id || user.id,
+                    helperId: bookingData.helperId,
+                    helperName: bookingData.helperName,
+                    serviceType: bookingData.serviceType,
+                    planType: bookingData.planType,
+                    startDate: startDate,
+                    rate: bookingData.rate,
+                    city: city,
+                    address: address
+                });
+
+                showMessage('Booking request sent! Helper will review and respond soon.', 'success');
+                sessionStorage.removeItem('bookingData');
+                setTimeout(() => window.location.href = 'my-bookings.html', 2000);
+            });
+        });
+    </script>
+
+    <footer>
+        <p>&copy; 2024 Maid & Nanny Service Management Platform</p>
+    </footer>
+</body>
+</html>

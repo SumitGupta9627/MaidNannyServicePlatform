@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work History - Maid & Nanny Services</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body data-page="work-history">
+    <section class="container page-section">
+        <div class="page-header">
+            <h1>Work History</h1>
+            <p>Your completed services and performance</p>
+        </div>
+
+        <div class="grid grid-2" style="margin-bottom: 30px;">
+            <div class="stat-card">
+                <div class="stat-number" id="total-jobs">0</div>
+                <div class="stat-label">Total Completed Jobs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avg-rating">0</div>
+                <div class="stat-label">Average Rating</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Service History</div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Service Type</th>
+                            <th>Plan Type</th>
+                            <th>Duration</th>
+                            <th>Completed Date</th>
+                            <th>Household</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-tbody">
+                        <tr><td colspan="5" style="text-align: center; color: var(--text-light);">No completed services yet</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function loadWorkHistory() {
+            if (!requireLogin()) return;
+
+            const user = getCurrentUser();
+            if (normalizeRole(user.role) !== 'helper') {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            const ratings = getRatings();
+
+            // Calculate stats
+            document.getElementById('total-jobs').textContent = history.length;
+
+            if (ratings.length > 0) {
+                const avgRating = (ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length).toFixed(1);
+                document.getElementById('avg-rating').textContent = avgRating;
+            }
+
+            // Render history
+            const tbody = document.getElementById('history-tbody');
+            if (history.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-light);">No completed services yet</td></tr>';
+            } else {
+                tbody.innerHTML = history.map(record => `
+                    <tr>
+                        <td>${record.serviceType}</td>
+                        <td>${record.planType}</td>
+                        <td>${record.duration}</td>
+                        <td>${new Date(record.completedAt).toLocaleDateString()}</td>
+                        <td>${record.householdId.substring(0, 8)}...</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadWorkHistory);
+    </script>
+
+    <footer>
+        <p>&copy; 2024 Maid & Nanny Service Management Platform</p>
+    </footer>
+</body>
+</html>

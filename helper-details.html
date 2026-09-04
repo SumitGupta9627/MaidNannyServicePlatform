@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helper Profile - Maid & Nanny Services</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body>
+    <section class="container page-section">
+        <div id="helper-profile" class="card">
+            <!-- Helper details will be loaded here -->
+        </div>
+
+        <div id="service-plans" class="card" style="margin-top: 30px;">
+            <div class="card-header">Service Plans</div>
+            <div class="card-body">
+                <div class="grid grid-3">
+                    <div class="card" style="text-align: center; border: 2px solid #ffc107;">
+                        <div style="font-size: 24px; font-weight: bold; color: #ffc107; margin-bottom: 10px;">⏰</div>
+                        <h3>Hourly</h3>
+                        <div id="hourly-rate" style="font-size: 20px; font-weight: bold; color: var(--primary-color); margin: 10px 0;">₹0/hr</div>
+                        <button class="btn btn-primary" onclick="bookService('Hourly')">Book Now</button>
+                    </div>
+
+                    <div class="card" style="text-align: center; border: 2px solid #4CAF50;">
+                        <div style="font-size: 24px; font-weight: bold; color: #4CAF50; margin-bottom: 10px;">📅</div>
+                        <h3>Monthly</h3>
+                        <div id="monthly-rate" style="font-size: 20px; font-weight: bold; color: var(--primary-color); margin: 10px 0;">₹0/month</div>
+                        <button class="btn btn-primary" onclick="bookService('Monthly')">Book Now</button>
+                    </div>
+
+                    <div class="card" style="text-align: center; border: 2px solid #2196F3;">
+                        <div style="font-size: 24px; font-weight: bold; color: #2196F3; margin-bottom: 10px;">📆</div>
+                        <h3>Yearly</h3>
+                        <div id="yearly-rate" style="font-size: 20px; font-weight: bold; color: var(--primary-color); margin: 10px 0;">₹0/year</div>
+                        <button class="btn btn-primary" onclick="bookService('Yearly')">Book Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="reviews-section" class="card" style="margin-top: 30px;">
+            <div class="card-header">Reviews & Ratings</div>
+            <div id="reviews-container" class="card-body">
+                <!-- Reviews will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <script>
+        let currentHelperId = null;
+
+        function loadHelperProfile() {
+            const params = new URLSearchParams(window.location.search);
+            currentHelperId = params.get('id');
+
+            if (!currentHelperId) {
+                window.location.href = 'helpers.html';
+                return;
+            }
+
+            const helper = getAllHelpers().find(h => h.id === currentHelperId);
+            if (!helper) {
+                showMessage('Helper not found', 'error');
+                window.location.href = 'helpers.html';
+                return;
+            }
+
+            const verified = helper.verificationStatus === 'Approved';
+            const isSaved = isLoggedIn() ? isHelperSaved(getCurrentUser().id, currentHelperId) : false;
+
+            const profileDiv = document.getElementById('helper-profile');
+            profileDiv.innerHTML = `
+                <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <div class="helper-avatar" style="height: 250px; font-size: 80px; border-radius: 8px; margin-bottom: 20px;">
+                            ${helper.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="bookService('Hourly')">Book Now</button>
+                            <button class="btn btn-outline" onclick="toggleSave()">${isSaved ? '❤️ Saved' : '🤍 Save'}</button>
+                        </div>
+                    </div>
+
+                    <div style="flex: 2;">
+                        <h1>${helper.name}</h1>
+                        
+                        <div style="margin: 20px 0;">
+                            <span class="badge ${verified ? 'badge-success' : 'badge-warning'}">
+                                ${verified ? '✓ Verified' : 'Pending Verification'}
+                            </span>
+                            <span style="margin-left: 10px; font-weight: 600;">
+                                ⭐ ${helper.rating.toFixed(1)} (${helper.reviews} reviews)
+                            </span>
+                        </div>
+
+                        <div style="background: var(--bg-light); padding: 20px; border-radius: 8px; margin: 20px 0;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 15px;">Service Details</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div>
+                                    <strong>Service Type:</strong><br>
+                                    ${helper.serviceType}
+                                </div>
+                                <div>
+                                    <strong>Experience:</strong><br>
+                                    ${helper.experience}
+                                </div>
+                                <div>
+                                    <strong>Location:</strong><br>
+                                    ${helper.location}
+                                </div>
+                                <div>
+                                    <strong>Availability:</strong><br>
+                                    ${helper.availability}
+                                </div>
+                                <div>
+                                    <strong>Gender:</strong><br>
+                                    ${helper.gender}
+                                </div>
+                                <div>
+                                    <strong>Joined:</strong><br>
+                                    ${helper.joinedAt}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 20px 0;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 10px;">About</h3>
+                            <p>${helper.description}</p>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                            <div>
+                                <h4 style="color: var(--primary-color); margin-bottom: 10px;">Skills</h4>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    ${(helper.skills || []).map(s => `<span class="badge badge-info">${s}</span>`).join('')}
+                                </div>
+                            </div>
+                            <div>
+                                <h4 style="color: var(--primary-color); margin-bottom: 10px;">Languages</h4>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    ${(helper.languages || []).map(l => `<span class="badge badge-info">${l}</span>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 20px 0;">
+                            <h4 style="color: var(--primary-color); margin-bottom: 10px;">Contact</h4>
+                            <p>📞 ${helper.phone}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Update rates
+            document.getElementById('hourly-rate').textContent = `₹${helper.hourlyRate}/hr`;
+            document.getElementById('monthly-rate').textContent = `₹${helper.monthlyRate}/month`;
+            document.getElementById('yearly-rate').textContent = `₹${helper.yearlyRate}/year`;
+
+            // Load reviews
+            loadReviews(helper.id);
+        }
+
+        function loadReviews(helperId) {
+            const ratings = getRatingsForHelper(helperId);
+            const container = document.getElementById('reviews-container');
+
+            if (ratings.length === 0) {
+                container.innerHTML = '<p class="text-muted">No reviews yet. Be the first to rate this helper!</p>';
+                return;
+            }
+
+            container.innerHTML = ratings.map(rating => `
+                <div style="border-bottom: 1px solid var(--border-color); padding: 15px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <strong>⭐ ${rating.rating}/5</strong>
+                            <p style="color: var(--text-light); margin: 5px 0;">${rating.comment}</p>
+                        </div>
+                        <small style="color: var(--text-light);">${new Date(rating.createdAt).toLocaleDateString()}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleSave() {
+            if (!isLoggedIn()) {
+                window.location.href = 'login.html?next=' + encodeURIComponent(window.location.href);
+                return;
+            }
+
+            const user = getCurrentUser();
+            if (isHelperSaved(user.id, currentHelperId)) {
+                unsaveHelper(user.id, currentHelperId);
+                showMessage('Removed from saved helpers', 'info');
+            } else {
+                saveHelper(user.id, currentHelperId);
+                showMessage('Added to saved helpers', 'success');
+            }
+
+            loadHelperProfile();
+        }
+
+        function bookService(planType) {
+            if (!isLoggedIn()) {
+                window.location.href = `login.html?next=${encodeURIComponent(window.location.href)}`;
+                return;
+            }
+
+            const user = getCurrentUser();
+            if (normalizeRole(user.role) !== 'household') {
+                showMessage('Only household members can book services', 'error');
+                return;
+            }
+
+            const helper = getAllHelpers().find(h => h.id === currentHelperId);
+            let rate = helper.hourlyRate;
+            if (planType === 'Monthly') rate = helper.monthlyRate;
+            if (planType === 'Yearly') rate = helper.yearlyRate;
+
+            // Store booking data in session for the booking form
+            sessionStorage.setItem('bookingData', JSON.stringify({
+                helperId: helper.id,
+                helperName: helper.name,
+                serviceType: helper.serviceType,
+                planType: planType,
+                rate: rate
+            }));
+
+            window.location.href = 'book-service.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', loadHelperProfile);
+    </script>
+
+    <footer>
+        <p>&copy; 2024 Maid & Nanny Service Management Platform</p>
+    </footer>
+</body>
+</html>

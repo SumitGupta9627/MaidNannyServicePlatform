@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Maid & Nanny Services</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body data-page="profile">
+    <section class="container page-section">
+        <div class="card" style="max-width: 600px; margin: 0 auto;">
+            <div class="card-header" id="profile-header">User Profile</div>
+            
+            <div class="card-body">
+                <div id="household-profile" style="display: none;">
+                    <form id="household-form">
+                        <div class="form-group">
+                            <label for="hh-name">Full Name</label>
+                            <input type="text" id="hh-name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hh-email">Email</label>
+                            <input type="email" id="hh-email" disabled>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hh-phone">Phone Number</label>
+                            <input type="tel" id="hh-phone">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hh-city">City</label>
+                            <select id="hh-city">
+                                <option value="Delhi">Delhi</option>
+                                <option value="Noida">Noida</option>
+                                <option value="Gurgaon">Gurgaon</option>
+                                <option value="Agra">Agra</option>
+                                <option value="Lucknow">Lucknow</option>
+                                <option value="Ghaziabad">Ghaziabad</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hh-address">Address</label>
+                            <textarea id="hh-address" placeholder="Complete address"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">Update Profile</button>
+                    </form>
+                </div>
+
+                <div id="helper-profile" style="display: none;">
+                    <form id="helper-form">
+                        <div class="form-group">
+                            <label for="hlp-name">Full Name</label>
+                            <input type="text" id="hlp-name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hlp-email">Email</label>
+                            <input type="email" id="hlp-email" disabled>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hlp-phone">Phone Number</label>
+                            <input type="tel" id="hlp-phone" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hlp-service">Service Type</label>
+                            <input type="text" id="hlp-service" disabled>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hlp-location">Location</label>
+                            <select id="hlp-location">
+                                <option value="Delhi">Delhi</option>
+                                <option value="Noida">Noida</option>
+                                <option value="Gurgaon">Gurgaon</option>
+                                <option value="Agra">Agra</option>
+                                <option value="Lucknow">Lucknow</option>
+                                <option value="Ghaziabad">Ghaziabad</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hlp-experience">Experience</label>
+                            <input type="text" id="hlp-experience" disabled>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hlp-availability">Availability</label>
+                            <select id="hlp-availability">
+                                <option value="Full-time">Full-time</option>
+                                <option value="Part-time">Part-time</option>
+                                <option value="Flexible">Flexible</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hlp-skills">Skills (comma-separated)</label>
+                            <input type="text" id="hlp-skills">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hlp-hourly-rate">Hourly Rate (₹)</label>
+                            <input type="number" id="hlp-hourly-rate">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hlp-monthly-rate">Monthly Rate (₹)</label>
+                            <input type="number" id="hlp-monthly-rate">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hlp-yearly-rate">Yearly Rate (₹)</label>
+                            <input type="number" id="hlp-yearly-rate">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hlp-description">About You</label>
+                            <textarea id="hlp-description" placeholder="Describe your experience and services"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">Update Profile</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function loadProfile() {
+            if (!requireLogin()) return;
+
+            const user = getCurrentUser();
+            const role = normalizeRole(user.role);
+
+            if (!['household', 'helper'].includes(role)) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            if (role === 'household') {
+                loadHouseholdProfile(user);
+            } else if (role === 'helper') {
+                loadHelperProfile(user);
+            }
+        }
+
+        function loadHouseholdProfile(user) {
+            document.getElementById('household-profile').style.display = 'block';
+            const household = readStore('households', []).find(h => h.userId === user.id);
+
+            if (household) {
+                document.getElementById('hh-name').value = household.name;
+                document.getElementById('hh-email').value = household.email;
+                document.getElementById('hh-phone').value = household.phone || '';
+                document.getElementById('hh-city').value = household.city || 'Delhi';
+                document.getElementById('hh-address').value = household.address || '';
+            } else {
+                document.getElementById('hh-name').value = user.name;
+                document.getElementById('hh-email').value = user.email;
+            }
+
+            document.getElementById('household-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                showMessage('Profile updated successfully', 'success');
+            });
+        }
+
+        function loadHelperProfile(user) {
+            document.getElementById('helper-profile').style.display = 'block';
+            const helpers = readStore('registeredHelpers', []);
+            const helper = helpers.find(h => h.id === readStore('currentHelperId', null));
+
+            if (helper) {
+                document.getElementById('hlp-name').value = helper.name;
+                document.getElementById('hlp-email').value = helper.email || user.email;
+                document.getElementById('hlp-phone').value = helper.phone;
+                document.getElementById('hlp-service').value = helper.serviceType;
+                document.getElementById('hlp-location').value = helper.location;
+                document.getElementById('hlp-experience').value = helper.experience;
+                document.getElementById('hlp-availability').value = helper.availability;
+                document.getElementById('hlp-skills').value = (helper.skills || []).join(', ');
+                document.getElementById('hlp-hourly-rate').value = helper.hourlyRate;
+                document.getElementById('hlp-monthly-rate').value = helper.monthlyRate;
+                document.getElementById('hlp-yearly-rate').value = helper.yearlyRate;
+                document.getElementById('hlp-description').value = helper.description;
+            }
+
+            document.getElementById('helper-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                showMessage('Profile updated successfully', 'success');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadProfile);
+    </script>
+
+    <footer>
+        <p>&copy; 2024 Maid & Nanny Service Management Platform</p>
+    </footer>
+</body>
+</html>

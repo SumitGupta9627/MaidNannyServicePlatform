@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings - Maid & Nanny Services</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body data-page="my-bookings">
+    <section class="container page-section">
+        <div class="page-header">
+            <h1>My Bookings</h1>
+            <p>Manage your service bookings</p>
+        </div>
+
+        <div class="grid grid-2">
+            <div class="stat-card">
+                <div class="stat-number" id="pending-count">0</div>
+                <div class="stat-label">Pending Requests</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="active-count">0</div>
+                <div class="stat-label">Active Bookings</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div style="margin: 30px 0; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="filterByStatus('all')">All</button>
+            <button class="btn btn-outline" onclick="filterByStatus('Pending')">Pending</button>
+            <button class="btn btn-outline" onclick="filterByStatus('Accepted')">Accepted</button>
+            <button class="btn btn-outline" onclick="filterByStatus('Active')">Active</button>
+            <button class="btn btn-outline" onclick="filterByStatus('Completed')">Completed</button>
+        </div>
+
+        <div id="bookings-container">
+            <!-- Bookings will be loaded here -->
+        </div>
+
+        <div id="no-bookings" class="no-results" style="display: none;">
+            <p>No bookings found.</p>
+            <a href="helpers.html" class="btn btn-primary" style="margin-top: 20px;">Browse Helpers</a>
+        </div>
+    </section>
+
+    <script>
+        let currentFilter = 'all';
+        let allBookings = [];
+
+        function loadBookings() {
+            if (!requireLogin()) return;
+
+            const user = getCurrentUser();
+            const userRole = normalizeRole(user.role);
+
+            if (userRole === 'household') {
+                const household = readStore('households', []).find(h => h.userId === user.id);
+                allBookings = getHouseholdBookings(household?.id || user.id);
+            } else if (userRole === 'helper') {
+                const helper = getAllHelpers().find(h => h.id === readStore('currentHelperId', null));
+                allBookings = getHelperBookings(helper?.id || user.id);
+            }
+
+            renderBookings();
+            updateStats();
+        }
+
+        function updateStats() {
+            const pending = allBookings.filter(b => b.status === 'Pending').length;
+            const active = allBookings.filter(b => b.status === 'Active' || b.status === 'Accepted').length;
+
+            document.getElementById('pending-count').textContent = pending;
+            document.getElementById('active-count').textContent = active;
+        }
+
+        function renderBookings() {
+            const container = document.getElementById('bookings-container');
+            const noBookings = document.getElementById('no-bookings');
+
+            let filtered = allBookings;
+            if (currentFilter !== 'all') {
+                filtered = allBookings.filter(b => b.status === currentFilter);
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                noBookings.style.display = 'block';
+                return;
+            }
+
+            noBookings.style.display = 'none';
+
+            container.innerHTML = filtered.map(booking => {
+                const statusColor = {
+                    'Pending': '#ff9800',
+                    'Accepted': '#2196F3',
+                    'Active': '#4CAF50',
+                    'Completed': '#9C27B0',
+                    'Rejected': '#f44336',
+                    'Cancelled': '#999'
+                };
+
+                return `
+                    <div class="card" style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <h3>${booking.helperName}</h3>
+                                <p><strong>${booking.serviceType}</strong> | ${booking.planType} | ₹${booking.rate}</p>
+                                <p style="color: var(--text-light);">
+                                    📅 Start: ${new Date(booking.startDate).toLocaleDateString()}<br>
+                                    📍 ${booking.city}, ${booking.address}<br>
+                                    🕐 Created: ${new Date(booking.createdAt).toLocaleDateString()}
+                                </p>
+                            </div>
+                            <div style="text-align: right;">
+                                <span class="badge" style="background: ${statusColor[booking.status]}; color: white; display: inline-block;">
+                                    ${booking.status}
+                                </span>
+                                <div style="margin-top: 10px;">
+                                    ${booking.status === 'Pending' ? `
+                                        <button class="btn btn-success" style="margin: 5px 0; display: block;" onclick="acceptBooking('${booking.id}')">Accept</button>
+                                        <button class="btn btn-danger" style="margin: 5px 0; display: block;" onclick="rejectBooking('${booking.id}')">Reject</button>
+                                    ` : ''}
+                                    ${booking.status === 'Active' ? `
+                                        <button class="btn btn-outline" style="margin: 5px 0; display: block;" onclick="completeBooking('${booking.id}')">Mark Complete</button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterByStatus(status) {
+            currentFilter = status;
+            renderBookings();
+
+            // Update button styles
+            document.querySelectorAll('button.btn').forEach(btn => {
+                btn.className = btn.textContent.toLowerCase().includes(status.toLowerCase()) || (status === 'all' && btn.textContent === 'All')
+                    ? 'btn btn-primary'
+                    : 'btn btn-outline';
+            });
+        }
+
+        function acceptBooking(bookingId) {
+            const bookings = getBookings();
+            const booking = bookings.find(b => b.id === bookingId);
+            if (booking) {
+                booking.status = 'Accepted';
+                writeStore('bookings', bookings);
+                showMessage('Booking accepted!', 'success');
+                loadBookings();
+            }
+        }
+
+        function rejectBooking(bookingId) {
+            const bookings = getBookings();
+            const booking = bookings.find(b => b.id === bookingId);
+            if (booking) {
+                booking.status = 'Rejected';
+                writeStore('bookings', bookings);
+                showMessage('Booking rejected', 'info');
+                loadBookings();
+            }
+        }
+
+        function completeBooking(bookingId) {
+            const bookings = getBookings();
+            const booking = bookings.find(b => b.id === bookingId);
+            if (booking) {
+                booking.status = 'Completed';
+                writeStore('bookings', bookings);
+                showMessage('Booking marked as complete', 'success');
+                loadBookings();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadBookings);
+    </script>
+
+    <footer>
+        <p>&copy; 2024 Maid & Nanny Service Management Platform</p>
+    </footer>
+</body>
+</html>

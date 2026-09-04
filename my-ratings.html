@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Ratings - Maid & Nanny Services</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body data-page="my-ratings">
+    <section class="container page-section">
+        <div class="page-header">
+            <h1>My Ratings & Reviews</h1>
+            <p>Feedback from households</p>
+        </div>
+
+        <div class="grid grid-2">
+            <div class="stat-card">
+                <div class="stat-number" id="avg-rating">0.0</div>
+                <div class="stat-label">Average Rating</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="total-reviews">0</div>
+                <div class="stat-label">Total Reviews</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 30px;">
+            <div class="card-header">Customer Feedback</div>
+            <div id="reviews-container" class="card-body">
+                <!-- Reviews will load here -->
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function loadRatings() {
+            if (!requireLogin()) return;
+
+            const user = getCurrentUser();
+            if (normalizeRole(user.role) !== 'helper') {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            const helpers = readStore('registeredHelpers', []);
+            const currentHelper = helpers.find(h => h.id === readStore('currentHelperId', null));
+
+            if (!currentHelper) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            const ratings = getRatingsForHelper(currentHelper.id);
+            
+            document.getElementById('total-reviews').textContent = ratings.length;
+
+            if (ratings.length === 0) {
+                document.getElementById('avg-rating').textContent = '0.0';
+                document.getElementById('reviews-container').innerHTML = '<p class="text-muted">No reviews yet</p>';
+                return;
+            }
+
+            const avgRating = (ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length).toFixed(1);
+            document.getElementById('avg-rating').textContent = avgRating;
+
+            document.getElementById('reviews-container').innerHTML = ratings.map(rating => `
+                <div style="border-bottom: 1px solid var(--border-color); padding: 15px 0;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div>
+                            <strong>⭐ ${rating.rating}/5 Stars</strong>
+                            <p style="margin: 10px 0; color: var(--text-light);">"${rating.comment}"</p>
+                        </div>
+                        <small style="color: var(--text-light);">${new Date(rating.createdAt).toLocaleDateString()}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', loadRatings);
+    </script>
+
+    <footer>
+        <p>&copy; 2024 Maid & Nanny Service Management Platform</p>
+    </footer>
+</body>
+</html>

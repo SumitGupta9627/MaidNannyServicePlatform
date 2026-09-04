@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Complaints - Maid & Nanny Services</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body data-page="admin-complaints">
+    <section class="container page-section">
+        <div class="page-header">
+            <h1>Complaints & Disputes</h1>
+            <p>Manage customer complaints</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Complaint List</div>
+            <div class="card-body">
+                <div id="complaints-container">
+                    <!-- Complaints will load here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function loadComplaints() {
+            if (!requireLogin()) return;
+
+            const user = getCurrentUser();
+            if (normalizeRole(user.role) !== 'admin') {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            const complaints = getComplaints();
+            const container = document.getElementById('complaints-container');
+
+            if (complaints.length === 0) {
+                container.innerHTML = '<p class="text-muted">No complaints</p>';
+                return;
+            }
+
+            container.innerHTML = complaints.map(c => `
+                <div style="border-bottom: 1px solid var(--border-color); padding: 15px 0;">
+                    <h4>${c.title}</h4>
+                    <p>${c.description}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="badge badge-${c.status === 'Open' ? 'warning' : c.status === 'Resolved' ? 'success' : 'info'}">${c.status}</span>
+                        <small style="color: var(--text-light);">${new Date(c.createdAt).toLocaleDateString()}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', loadComplaints);
+    </script>
+
+    <footer>
+        <p>&copy; 2024 Maid & Nanny Service Management Platform</p>
+    </footer>
+</body>
+</html>

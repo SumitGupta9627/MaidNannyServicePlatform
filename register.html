@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Maid & Nanny Services</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body>
+    <section class="container page-section">
+        <div style="max-width: 500px; margin: 0 auto;">
+            <div class="card">
+                <div class="card-header">Create Your Account</div>
+                
+                <div class="card-body">
+                    <form id="register-form">
+                        <div class="form-group">
+                            <label for="register-name">Full Name *</label>
+                            <input type="text" id="register-name" name="name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="register-email">Email Address *</label>
+                            <input type="email" id="register-email" name="email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="register-password">Password *</label>
+                            <input type="password" id="register-password" name="password" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="register-role">I am a *</label>
+                            <select id="register-role" name="role" required onchange="updateRoleFields()">
+                                <option value="">-- Select --</option>
+                                <option value="household">Household Member (Hiring)</option>
+                                <option value="helper">Helper (Service Provider)</option>
+                            </select>
+                        </div>
+
+                        <!-- Household Fields -->
+                        <div id="household-fields" style="display: none;">
+                            <div class="form-group">
+                                <label for="register-phone">Phone Number</label>
+                                <input type="tel" id="register-phone" name="phone">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="register-city">City *</label>
+                                <select id="register-city" name="city">
+                                    <option value="Delhi">Delhi</option>
+                                    <option value="Noida">Noida</option>
+                                    <option value="Gurgaon">Gurgaon</option>
+                                    <option value="Agra">Agra</option>
+                                    <option value="Lucknow">Lucknow</option>
+                                    <option value="Ghaziabad">Ghaziabad</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="register-address">Address</label>
+                                <textarea id="register-address" name="address" placeholder="Enter your address"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Helper Fields -->
+                        <div id="helper-fields" style="display: none;">
+                            <div class="form-group">
+                                <label for="register-gender">Gender</label>
+                                <select id="register-gender" name="gender">
+                                    <option value="Female">Female</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="register-service-type">Service Type *</label>
+                                <select id="register-service-type" name="serviceType" required>
+                                    <option value="">-- Select --</option>
+                                    <option value="Maid">Maid</option>
+                                    <option value="Nanny">Nanny</option>
+                                    <option value="Babysitter">Babysitter</option>
+                                    <option value="Cook">Cook</option>
+                                    <option value="Driver">Driver</option>
+                                    <option value="Cleaner">Cleaner</option>
+                                    <option value="Caregiver">Caregiver</option>
+                                    <option value="Elderly Care">Elderly Care</option>
+                                    <option value="Gardener">Gardener</option>
+                                    <option value="Home Tutor">Home Tutor</option>
+                                    <option value="Pet Care">Pet Care</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="register-experience">Experience *</label>
+                                <select id="register-experience" name="experience" required>
+                                    <option value="">-- Select --</option>
+                                    <option value="Fresher">Fresher</option>
+                                    <option value="1-2 Years">1-2 Years</option>
+                                    <option value="2-5 Years">2-5 Years</option>
+                                    <option value="5+ Years">5+ Years</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="register-location">Location *</label>
+                                <select id="register-location" name="location">
+                                    <option value="Delhi">Delhi</option>
+                                    <option value="Noida">Noida</option>
+                                    <option value="Gurgaon">Gurgaon</option>
+                                    <option value="Agra">Agra</option>
+                                    <option value="Lucknow">Lucknow</option>
+                                    <option value="Ghaziabad">Ghaziabad</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="register-availability">Availability</label>
+                                <select id="register-availability" name="availability">
+                                    <option value="Full-time">Full-time</option>
+                                    <option value="Part-time">Part-time</option>
+                                    <option value="Flexible">Flexible</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="register-phone">Phone Number</label>
+                                <input type="tel" id="register-phone" name="phone">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="register-skills">Skills (comma-separated)</label>
+                                <input type="text" id="register-skills" name="skills" placeholder="e.g., Cleaning, Laundry">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="register-languages">Languages (comma-separated)</label>
+                                <input type="text" id="register-languages" name="languages" placeholder="e.g., Hindi, English" value="Hindi, English">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="register-hourly-rate">Hourly Rate (₹)</label>
+                                <input type="number" id="register-hourly-rate" name="hourlyRate" placeholder="250">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="register-monthly-rate">Monthly Rate (₹)</label>
+                                <input type="number" id="register-monthly-rate" name="monthlyRate" placeholder="6000">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="register-yearly-rate">Yearly Rate (₹)</label>
+                                <input type="number" id="register-yearly-rate" name="yearlyRate" placeholder="70000">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="register-description">About You</label>
+                                <textarea id="register-description" name="description" placeholder="Tell households about your experience and skills"></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+                    </form>
+
+                    <div style="text-align: center; margin-top: 20px;">
+                        <p>Already have an account? <a href="login.html" style="color: var(--primary-color); font-weight: 600;">Login here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function updateRoleFields() {
+            const role = document.getElementById('register-role').value;
+            document.getElementById('household-fields').style.display = role === 'household' ? 'block' : 'none';
+            document.getElementById('helper-fields').style.display = role === 'helper' ? 'block' : 'none';
+        }
+    </script>
+
+    <footer style="margin-top: 50px;">
+        <p>&copy; 2024 Maid & Nanny Service Management Platform</p>
+    </footer>
+</body>
+</html>

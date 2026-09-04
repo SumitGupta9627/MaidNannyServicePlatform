@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Maid & Nanny Services</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body data-page="dashboard">
+    <section class="container page-section">
+        <div class="page-header">
+            <h1>Welcome, <span id="user-name">User</span>!</h1>
+            <p id="role-subtitle">Your personalized dashboard</p>
+        </div>
+
+        <div id="household-dashboard" style="display: none;">
+            <h2 style="color: var(--primary-color); margin-bottom: 20px;">Household Dashboard</h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="saved-helpers">0</div>
+                    <div class="stat-label">Saved Helpers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="active-bookings">0</div>
+                    <div class="stat-label">Active Bookings</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="pending-requests">0</div>
+                    <div class="stat-label">Pending Requests</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completed-services">0</div>
+                    <div class="stat-label">Completed Services</div>
+                </div>
+            </div>
+
+            <div class="grid grid-2" style="margin-top: 30px;">
+                <a href="helpers.html" class="card" style="text-align: center; cursor: pointer;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">🔍</div>
+                    <h3>Browse Helpers</h3>
+                    <p>Find and book verified service providers</p>
+                </a>
+
+                <a href="my-bookings.html" class="card" style="text-align: center; cursor: pointer;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">📋</div>
+                    <h3>My Bookings</h3>
+                    <p>View and manage your active bookings</p>
+                </a>
+
+                <a href="saved-helpers.html" class="card" style="text-align: center; cursor: pointer;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">❤️</div>
+                    <h3>Saved Helpers</h3>
+                    <p>Access your favorite helpers</p>
+                </a>
+
+                <a href="profile.html" class="card" style="text-align: center; cursor: pointer;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">👤</div>
+                    <h3>My Profile</h3>
+                    <p>Update your household information</p>
+                </a>
+            </div>
+        </div>
+
+        <div id="helper-dashboard" style="display: none;">
+            <h2 style="color: var(--primary-color); margin-bottom: 20px;">Helper Dashboard</h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="profile-completion">0</div>
+                    <div class="stat-label">Profile Completion %</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="verification-status">Pending</div>
+                    <div class="stat-label">Verification Status</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="pending-bookings">0</div>
+                    <div class="stat-label">Pending Bookings</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completed-jobs">0</div>
+                    <div class="stat-label">Completed Jobs</div>
+                </div>
+            </div>
+
+            <div id="verification-alert" style="background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 8px; margin: 20px 0; display: none;">
+                <strong>⚠️ Verification Pending</strong>
+                <p>Your profile is pending admin verification. Please upload required documents to speed up the process.</p>
+                <a href="profile.html" class="btn btn-primary" style="margin-top: 10px;">Upload Documents</a>
+            </div>
+
+            <div class="grid grid-2" style="margin-top: 30px;">
+                <a href="my-bookings.html" class="card" style="text-align: center; cursor: pointer;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">📋</div>
+                    <h3>My Bookings</h3>
+                    <p>View booking requests from households</p>
+                </a>
+
+                <a href="work-history.html" class="card" style="text-align: center; cursor: pointer;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">📊</div>
+                    <h3>Work History</h3>
+                    <p>Track your completed services</p>
+                </a>
+
+                <a href="profile.html" class="card" style="text-align: center; cursor: pointer;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">👤</div>
+                    <h3>My Profile</h3>
+                    <p>Update your information and rates</p>
+                </a>
+
+                <a href="my-ratings.html" class="card" style="text-align: center; cursor: pointer;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">⭐</div>
+                    <h3>My Ratings</h3>
+                    <p>View feedback from households</p>
+                </a>
+            </div>
+        </div>
+
+        <div id="admin-dashboard" style="display: none;">
+            <h2 style="color: var(--primary-color); margin-bottom: 20px;">Admin Dashboard</h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-helpers">0</div>
+                    <div class="stat-label">Total Helpers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="pending-verifications">0</div>
+                    <div class="stat-label">Pending Verifications</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-households">0</div>
+                    <div class="stat-label">Total Households</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-bookings">0</div>
+                    <div class="stat-label">Total Bookings</div>
+                </div>
+            </div>
+
+            <div class="grid grid-2" style="margin-top: 30px;">
+                <a href="admin-verifications.html" class="card" style="text-align: center; cursor: pointer;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">✓</div>
+                    <h3>Verifications</h3>
+                    <p>Review and approve helper profiles</p>
+                </a>
+
+                <a href="admin-bookings.html" class="card" style="text-align: center; cursor: pointer;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">📋</div>
+                    <h3>All Bookings</h3>
+                    <p>Monitor all platform bookings</p>
+                </a>
+
+                <a href="admin-complaints.html" class="card" style="text-align: center; cursor: pointer;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">⚠️</div>
+                    <h3>Complaints</h3>
+                    <p>Handle disputes and complaints</p>
+                </a>
+
+                <a href="admin-reports.html" class="card" style="text-align: center; cursor: pointer;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">📊</div>
+                    <h3>Reports</h3>
+                    <p>View platform analytics</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function loadDashboard() {
+            if (!requireLogin()) return;
+
+            const user = getCurrentUser();
+            const role = normalizeRole(user.role);
+
+            document.getElementById('user-name').textContent = user.name;
+
+            if (role === 'household') {
+                document.getElementById('household-dashboard').style.display = 'block';
+                document.getElementById('role-subtitle').textContent = 'Household Member Dashboard';
+                loadHouseholdStats();
+            } else if (role === 'helper') {
+                document.getElementById('helper-dashboard').style.display = 'block';
+                document.getElementById('role-subtitle').textContent = 'Helper Dashboard';
+                loadHelperStats();
+            } else if (role === 'admin') {
+                document.getElementById('admin-dashboard').style.display = 'block';
+                document.getElementById('role-subtitle').textContent = 'Administrator Dashboard';
+                loadAdminStats();
+            }
+        }
+
+        function loadHouseholdStats() {
+            const user = getCurrentUser();
+            const household = readStore('households', []).find(h => h.userId === user.id);
+            const saved = getSavedHelpers(household?.id || user.id);
+            const bookings = getHouseholdBookings(household?.id || user.id);
+
+            document.getElementById('saved-helpers').textContent = saved.length;
+            document.getElementById('active-bookings').textContent = bookings.filter(b => b.status === 'Active').length;
+            document.getElementById('pending-requests').textContent = bookings.filter(b => b.status === 'Pending').length;
+            document.getElementById('completed-services').textContent = bookings.filter(b => b.status === 'Completed').length;
+        }
+
+        function loadHelperStats() {
+            const user = getCurrentUser();
+            const helpers = readStore('registeredHelpers', []);
+            const helper = helpers.find(h => h.id === readStore('currentHelperId', null));
+
+            if (helper) {
+                document.getElementById('profile-completion').textContent = helper.profileCompletion;
+                document.getElementById('verification-status').textContent = helper.verificationStatus;
+
+                if (helper.verificationStatus === 'Pending') {
+                    document.getElementById('verification-alert').style.display = 'block';
+                }
+            }
+
+            const bookings = getHelperBookings(helper?.id || user.id);
+            document.getElementById('pending-bookings').textContent = bookings.filter(b => b.status === 'Pending').length;
+            document.getElementById('completed-jobs').textContent = bookings.filter(b => b.status === 'Completed').length;
+        }
+
+        function loadAdminStats() {
+            const stats = getStatistics();
+            document.getElementById('total-helpers').textContent = stats.totalHelpers;
+            document.getElementById('pending-verifications').textContent = stats.pendingVerifications;
+            document.getElementById('total-households').textContent = stats.totalHouseholds;
+            document.getElementById('total-bookings').textContent = stats.totalBookings;
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDashboard);
+    </script>
+
+    <footer>
+        <p>&copy; 2024 Maid & Nanny Service Management Platform</p>
+    </footer>
+</body>
+</html>

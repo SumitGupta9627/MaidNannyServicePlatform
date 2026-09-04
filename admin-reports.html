@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Reports - Maid & Nanny Services</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="config.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body data-page="admin-reports">
+    <section class="container page-section">
+        <div class="page-header">
+            <h1>Platform Reports</h1>
+            <p>Analytics and insights</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="report-helpers">0</div>
+                <div class="stat-label">Total Helpers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="report-approved">0</div>
+                <div class="stat-label">Verified Helpers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="report-bookings">0</div>
+                <div class="stat-label">Total Bookings</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="report-completed">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 30px;">
+            <div class="card-header">Service Distribution</div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Service Type</th>
+                            <th>Helpers</th>
+                            <th>Bookings</th>
+                        </tr>
+                    </thead>
+                    <tbody id="service-distribution">
+                        <tr><td colspan="3" style="text-align: center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function loadReports() {
+            if (!requireLogin()) return;
+
+            const user = getCurrentUser();
+            if (normalizeRole(user.role) !== 'admin') {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            const stats = getStatistics();
+            const helpers = getAllHelpers();
+            const bookings = getBookings();
+
+            document.getElementById('report-helpers').textContent = stats.totalHelpers;
+            document.getElementById('report-approved').textContent = stats.approvedHelpers;
+            document.getElementById('report-bookings').textContent = stats.totalBookings;
+            document.getElementById('report-completed').textContent = stats.completedBookings;
+
+            // Service distribution
+            const distribution = {};
+            SERVICE_TYPES.forEach(type => {
+                distribution[type] = {
+                    helpers: helpers.filter(h => h.serviceType === type).length,
+                    bookings: bookings.filter(b => b.serviceType === type).length
+                };
+            });
+
+            const tbody = document.getElementById('service-distribution');
+            tbody.innerHTML = Object.entries(distribution).map(([type, data]) => `
+                <tr>
+                    <td><strong>${type}</strong></td>
+                    <td>${data.helpers}</td>
+                    <td>${data.bookings}</td>
+                </tr>
+            `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', loadReports);
+    </script>
+
+    <footer>
+        <p>&copy; 2024 Maid & Nanny Service Management Platform</p>
+    </footer>
+</body>
+</html>
