@@ -1,0 +1,20 @@
+{
+  "name": "maid-nanny-service-platform",
+  "version": "1.0.0",
+  "description": "Maid & Nanny Service Management Platform",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"No tests configured\" && exit 0"
+  },
+  "keywords": [
+    "maid",
+    "nanny",
+    "service",
+    "platform"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vercel/analytics": "^1.1.1"
+  }
+}
